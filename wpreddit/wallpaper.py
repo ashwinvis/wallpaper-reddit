@@ -4,6 +4,7 @@ import random
 import re
 import shutil
 import sys
+from shlex import split
 from subprocess import check_call, check_output, CalledProcessError
 
 from wpreddit import config
@@ -43,7 +44,7 @@ def linux_wallpaper():
         elif check_de(de, ["cinnamon"]):
             check_call(["gsettings", "set", "org.cinnamon.desktop.background", "picture-uri",
                                    "file://%s" % path])
-        elif check_de(de, ["pantheon"]):
+        elif check_de(de, ["pantheon", "plasma"]):
             # Some disgusting hacks so that Pantheon will update the wallpaper
             # If the filename isn't changed, the wallpaper doesn't either
             files = os.listdir(config.walldir)
@@ -53,8 +54,24 @@ def linux_wallpaper():
             randint = random.randint(0, 65535)
             randpath = os.path.expanduser(config.walldir + "/wallpaper%s.jpg" % randint)
             shutil.copyfile(path, randpath)
-            check_call(["gsettings", "set", "org.gnome.desktop.background", "picture-uri",
-                                   "file://%s" % randpath])
+            if check_de(de, ["pantheon"]):
+                check_call(["gsettings", "set", "org.gnome.desktop.background",
+                            "picture-uri", "file://%s" % randpath])
+            elif check_de(de, ["plasma"]):
+                command = """
+                qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
+                    var allDesktops = desktops();
+                    print (allDesktops);
+                    for (i=0;i<allDesktops.length;i++) {{
+                        d = allDesktops[i];
+                        d.wallpaperPlugin = "org.kde.image";
+                        d.currentConfigGroup = Array("Wallpaper", "org.kde.image", "General");
+                        d.writeConfig("Image", "file://{}")
+                    }}
+                '
+                """.format(randpath)
+                command = split(command)
+                check_call(command)
         elif check_de(de, ["mate"]):
             check_call(["gsettings", "set", "org.mate.background", "picture-filename",
                                    "'%s'" % path])
