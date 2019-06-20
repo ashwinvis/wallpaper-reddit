@@ -32,6 +32,7 @@ walldir = ''
 confdir = ''
 savedir = ''
 sortby = ''
+time = ''
 opsys = platform.system()
 
 
@@ -96,6 +97,7 @@ def parse_config():
     global randomsub
     global lottery
     global sortby
+    global time
     if config.get('Title Overlay', 'titlegravity', fallback=None) is not None:
         print("You are using an old (pre v3) configuration file.  Please delete your config file at " + confdir +
               " and let the program create a new one.")
@@ -110,6 +112,7 @@ def parse_config():
     randomsub = config.getboolean('Options', 'random', fallback=False)
     lottery = config.getboolean('Options', 'lottery', fallback=False)
     sortby = config.get('Options', 'sortby', fallback="hot")
+    time = config.get('Options', 'time', fallback="day")
     setcmd = config.get('SetCommand', 'setcommand', fallback='')
     settitle = config.getboolean('Title Overlay', 'settitle', fallback=False)
     titlesize = config.getint('Title Overlay', 'titlesize', fallback=24)
